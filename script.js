@@ -244,6 +244,7 @@ function renderPhotoStrip() {
   const customText = document.getElementById('footer-text-input')?.value || "";
   const fontFamily = document.getElementById('footer-font-select')?.value || "Plus Jakarta Sans";
   const textColor = document.getElementById('footer-color-picker')?.value || "#ffffff";
+  const fontSize = parseInt(document.getElementById('footer-size-slider')?.value || 18); // TAMBAHAN: Baca ukuran teks
   const showDate = document.getElementById('show-date-checkbox')?.checked;
 
   const footerCenterY = stripCanvas.height - (footerHeight / 2) - 5;
@@ -256,15 +257,18 @@ function renderPhotoStrip() {
   const drawX = currentQrImage ? 25 : textCenterX;
 
   if (customText.trim() !== "") {
-    ctx.font = `700 18px '${fontFamily}', sans-serif`;
-    ctx.fillText(customText, drawX, footerCenterY - (showDate ? 10 : 0));
+    // Gunakan variabel fontSize secara dinamis
+    ctx.font = `700 ${fontSize}px '${fontFamily}', sans-serif`;
+    ctx.fillText(customText, drawX, footerCenterY - (showDate ? (fontSize / 2) : 0));
   }
 
   if (showDate) {
     const today = new Date();
     const dateStr = today.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
-    ctx.font = `400 12px '${fontFamily}', sans-serif`;
-    ctx.fillText(dateStr, drawX, footerCenterY + (customText.trim() !== "" ? 14 : 0));
+    // Ukuran tanggal menyesuaikan secara proporsional dengan ukuran teks utama
+    const dateFontSize = Math.max(10, Math.floor(fontSize * 0.65));
+    ctx.font = `400 ${dateFontSize}px '${fontFamily}', sans-serif`;
+    ctx.fillText(dateStr, drawX, footerCenterY + (customText.trim() !== "" ? (fontSize / 2 + 4) : 0));
   }
 
   // 5. Render QR Code (jika tersedia)

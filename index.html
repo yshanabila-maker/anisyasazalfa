@@ -119,37 +119,31 @@
           </div>
 
           <!-- Teks Footer Kustom -->
-          <div class="control-box">
-            <label><i class="fa-solid fa-font"></i> Teks Footer</label>
-            <input type="text" id="footer-text-input" placeholder="Tulis teks..." value="PHOTOSTUDIO MEMORIES" oninput="renderPhotoStrip()" class="custom-input">
-            
-            <div class="input-row" style="margin-top: 8px;">
-              <select id="footer-font-select" onchange="renderPhotoStrip()" class="custom-select half">
-                <option value="Plus Jakarta Sans">Sans-Serif</option>
-                <option value="Pacifico">Cursive</option>
-                <option value="Courier Prime">Monospace</option>
-                <option value="Montserrat">Bold Caps</option>
-              </select>
-              <input type="color" id="footer-color-picker" value="#ffffff" onchange="renderPhotoStrip()" class="color-picker-input">
-            </div>
+            <div class="control-box">
+              <label><i class="fa-solid fa-font"></i> Teks Footer</label>
+              <input type="text" id="footer-text-input" placeholder="Tulis teks..." value="PHOTOSTUDIO MEMORIES" oninput="renderPhotoStrip()" class="custom-input">
+              
+              <div class="input-row" style="margin-top: 8px;">
+                <select id="footer-font-select" onchange="renderPhotoStrip()" class="custom-select half">
+                  <option value="Plus Jakarta Sans">Sans-Serif</option>
+                  <option value="Pacifico">Cursive</option>
+                  <option value="Courier Prime">Monospace</option>
+                  <option value="Montserrat">Bold Caps</option>
+                </select>
+                <input type="color" id="footer-color-picker" value="#ffffff" onchange="renderPhotoStrip()" class="color-picker-input">
+              </div>
 
-            <div class="checkbox-row" style="margin-top: 10px;">
-              <input type="checkbox" id="show-date-checkbox" checked onchange="renderPhotoStrip()">
-              <label for="show-date-checkbox">Tampilkan Tanggal Otomatis</label>
-            </div>
-          </div>
+              <!-- TAMBAHAN: Ukuran Teks Footer -->
+              <div style="margin-top: 10px;">
+                <label style="font-size: 0.75rem; margin-bottom: 4px;"><i class="fa-solid fa-text-height"></i> Ukuran Teks: <span id="font-size-val">18px</span></label>
+                <input type="range" id="footer-size-slider" min="12" max="32" value="18" oninput="document.getElementById('font-size-val').innerText = this.value + 'px'; renderPhotoStrip();">
+              </div>
 
-          <!-- Stiker -->
-          <div class="control-box">
-            <label><i class="fa-solid fa-face-smile"></i> Stiker (Klik untuk tambah)</label>
-            <div class="sticker-grid">
-              <span onclick="addSticker('❤️')">❤️</span>
-              <span onclick="addSticker('⭐')">⭐</span>
-              <span onclick="addSticker('🎀')">🎀</span>
-              <span onclick="addSticker('✨')">✨</span>
-              <span onclick="addSticker('😎')">😎</span>
+              <div class="checkbox-row" style="margin-top: 10px;">
+                <input type="checkbox" id="show-date-checkbox" checked onchange="renderPhotoStrip()">
+                <label for="show-date-checkbox">Tampilkan Tanggal Otomatis</label>
+              </div>
             </div>
-          </div>
 
           <!-- QR Code Download HP -->
           <div class="control-box">
