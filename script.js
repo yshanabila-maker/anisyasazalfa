@@ -96,8 +96,10 @@ function captureStep(index) {
 
 function snapPhoto() {
   const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = 800;
-  tempCanvas.height = 600;
+  // Ambil ukuran asli video webcam agar rasio tidak rusak
+  tempCanvas.width = video.videoWidth || 800;
+  tempCanvas.height = video.videoHeight || 600;
+  
   const tCtx = tempCanvas.getContext('2d');
 
   // Mirror horizontal
@@ -141,12 +143,13 @@ function isDarkColor(hex) {
 }
 
 // Filter Engine (Offscreen processing)
-function applyFilterToCanvas(image, width, height, filter) {
+function applyFilterToCanvas(image, targetWidth, targetHeight, filter) {
   const offscreen = document.createElement('canvas');
-  offscreen.width = width;
-  offscreen.height = height;
+  offscreen.width = targetWidth;
+  offscreen.height = targetHeight;
   const oCtx = offscreen.getContext('2d');
 
+  // Terapkan Filter
   switch (filter) {
     case 'bw':
       oCtx.filter = 'grayscale(100%) contrast(110%)';
@@ -167,11 +170,32 @@ function applyFilterToCanvas(image, width, height, filter) {
       oCtx.filter = 'none';
   }
 
-  oCtx.drawImage(image, 0, 0, width, height);
+  // --- LOGIKA ASPECT RATIO (Object-Fit: Cover) ---
+  const imgAspect = image.width / image.height;
+  const targetAspect = targetWidth / targetHeight;
+  
+  let renderW, renderH, offsetX, offsetY;
+
+  if (imgAspect > targetAspect) {
+    // Foto terlalu lebar, crop bagian kiri & kanan
+    renderH = image.height;
+    renderW = image.height * targetAspect;
+    offsetX = (image.width - renderW) / 2;
+    offsetY = 0;
+  } else {
+    // Foto terlalu tinggi, crop bagian atas & bawah
+    renderW = image.width;
+    renderH = image.width / targetAspect;
+    offsetX = 0;
+    offsetY = (image.height - renderH) / 2;
+  }
+
+  // Draw gambar dengan cropping yang presisi
+  oCtx.drawImage(image, offsetX, offsetY, renderW, renderH, 0, 0, targetWidth, targetHeight);
 
   if (filter === 'vintage') {
     oCtx.fillStyle = 'rgba(255, 230, 180, 0.15)';
-    oCtx.fillRect(0, 0, width, height);
+    oCtx.fillRect(0, 0, targetWidth, targetHeight);
   }
 
   return offscreen;
