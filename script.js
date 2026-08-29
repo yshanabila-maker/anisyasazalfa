@@ -2,15 +2,9 @@
 let photoCount = 3;
 let mediaStream = null;
 let takenPhotos = [];
-let bgColor = '#ffb6c1';
+let bgColor = '#800020'; // Warna Default Maroon
 let bgPattern = 'solid';
 let currentFilter = 'none';
-let appliedStickers = [];
-let selectedStickerIndex = null;
-let isDragging = false;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-let currentQrImage = null;
 
 // Element Selectors
 const video = document.getElementById('webcam');
@@ -52,11 +46,6 @@ function stopCamera() {
 function resetToHome() {
   stopCamera();
   takenPhotos = [];
-  appliedStickers = [];
-  selectedStickerIndex = null;
-  currentQrImage = null;
-  const qrStatus = document.getElementById('qr-status');
-  if (qrStatus) qrStatus.style.display = 'none';
   showStep('step-welcome');
 }
 
@@ -96,7 +85,6 @@ function captureStep(index) {
 
 function snapPhoto() {
   const tempCanvas = document.createElement('canvas');
-  // Ambil ukuran asli video webcam agar rasio tidak rusak
   tempCanvas.width = video.videoWidth || 800;
   tempCanvas.height = video.videoHeight || 600;
   
@@ -142,14 +130,13 @@ function isDarkColor(hex) {
   return brightness < 128;
 }
 
-// Filter Engine (Offscreen processing)
+// Filter & Aspect Ratio Engine (Object-Fit Cover)
 function applyFilterToCanvas(image, targetWidth, targetHeight, filter) {
   const offscreen = document.createElement('canvas');
   offscreen.width = targetWidth;
   offscreen.height = targetHeight;
   const oCtx = offscreen.getContext('2d');
 
-  // Terapkan Filter
   switch (filter) {
     case 'bw':
       oCtx.filter = 'grayscale(100%) contrast(110%)';
@@ -170,27 +157,24 @@ function applyFilterToCanvas(image, targetWidth, targetHeight, filter) {
       oCtx.filter = 'none';
   }
 
-  // --- LOGIKA ASPECT RATIO (Object-Fit: Cover) ---
+  // Crop Aspect Ratio (Mencegah Gepeng/Stretched)
   const imgAspect = image.width / image.height;
   const targetAspect = targetWidth / targetHeight;
   
   let renderW, renderH, offsetX, offsetY;
 
   if (imgAspect > targetAspect) {
-    // Foto terlalu lebar, crop bagian kiri & kanan
     renderH = image.height;
     renderW = image.height * targetAspect;
     offsetX = (image.width - renderW) / 2;
     offsetY = 0;
   } else {
-    // Foto terlalu tinggi, crop bagian atas & bawah
     renderW = image.width;
     renderH = image.width / targetAspect;
     offsetX = 0;
     offsetY = (image.height - renderH) / 2;
   }
 
-  // Draw gambar dengan cropping yang presisi
   oCtx.drawImage(image, offsetX, offsetY, renderW, renderH, 0, 0, targetWidth, targetHeight);
 
   if (filter === 'vintage') {
@@ -264,197 +248,37 @@ function renderPhotoStrip() {
     ctx.drawImage(filteredCanvas, padding, yPos, photoW, photoH);
   });
 
-  // 4. Render Footer Text & Date
+  // 4. Render Footer Text & Date (Posisi Selalu Center Secara Presisi)
   const customText = document.getElementById('footer-text-input')?.value || "";
   const fontFamily = document.getElementById('footer-font-select')?.value || "Plus Jakarta Sans";
   const textColor = document.getElementById('footer-color-picker')?.value || "#ffffff";
-  const fontSize = parseInt(document.getElementById('footer-size-slider')?.value || 18); // TAMBAHAN: Baca ukuran teks
+  const fontSize = parseInt(document.getElementById('footer-size-slider')?.value || 18);
   const showDate = document.getElementById('show-date-checkbox')?.checked;
 
   const footerCenterY = stripCanvas.height - (footerHeight / 2) - 5;
-  const textCenterX = currentQrImage ? (stripCanvas.width - 70) / 2 : stripCanvas.width / 2;
+  const textCenterX = stripCanvas.width / 2;
 
   ctx.fillStyle = textColor;
-  ctx.textAlign = currentQrImage ? "left" : "center";
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  const drawX = currentQrImage ? 25 : textCenterX;
-
   if (customText.trim() !== "") {
-    // Gunakan variabel fontSize secara dinamis
     ctx.font = `700 ${fontSize}px '${fontFamily}', sans-serif`;
-    ctx.fillText(customText, drawX, footerCenterY - (showDate ? (fontSize / 2) : 0));
+    ctx.fillText(customText, textCenterX, footerCenterY - (showDate ? (fontSize / 2) : 0));
   }
 
   if (showDate) {
     const today = new Date();
     const dateStr = today.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
-    // Ukuran tanggal menyesuaikan secara proporsional dengan ukuran teks utama
     const dateFontSize = Math.max(10, Math.floor(fontSize * 0.65));
     ctx.font = `400 ${dateFontSize}px '${fontFamily}', sans-serif`;
-    ctx.fillText(dateStr, drawX, footerCenterY + (customText.trim() !== "" ? (fontSize / 2 + 4) : 0));
+    ctx.fillText(dateStr, textCenterX, footerCenterY + (customText.trim() !== "" ? (fontSize / 2 + 6) : 0));
   }
 
-  // 5. Render QR Code (jika tersedia)
-  if (currentQrImage) {
-    const qrSize = 55;
-    const qrMargin = 18;
-    const qrX = stripCanvas.width - qrSize - qrMargin;
-    const qrY = stripCanvas.height - qrSize - 18;
-
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8);
-    ctx.drawImage(currentQrImage, qrX, qrY, qrSize, qrSize);
-  }
-
-  // 6. Render Stickers
-  appliedStickers.forEach((s, index) => {
-    ctx.font = `${s.size}px sans-serif`;
-    ctx.textBaseline = "middle";
-    ctx.textAlign = "center";
-    ctx.fillText(s.emoji, s.x, s.y);
-
-    if (index === selectedStickerIndex) {
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 2;
-      const boxSize = s.size;
-      ctx.strokeRect(s.x - boxSize / 2, s.y - boxSize / 2, boxSize, boxSize);
-    }
-  });
-
-  // Update Download Link
+  // Update Link Download Direct
   const downloadBtn = document.getElementById('download-btn');
-  downloadBtn.href = stripCanvas.toDataURL('image/png');
-  downloadBtn.download = `photostrip-${Date.now()}.png`;
-}
-
-// QR Code Generator via tmpfiles.org API (Tanpa API Key/Client-ID)
-async function generatePhotoQR() {
-  const qrBtn = document.getElementById('qr-generate-btn');
-  const qrStatus = document.getElementById('qr-status');
-  
-  qrBtn.disabled = true;
-  qrStatus.style.display = 'block';
-  qrStatus.innerText = 'Mengunggah foto...';
-
-  try {
-    // 1. Convert Canvas ke Blob Data
-    const blob = await new Promise(resolve => stripCanvas.toBlob(resolve, 'image/png'));
-    
-    const formData = new FormData();
-    formData.append('file', blob, 'photostrip.png');
-
-    // 2. Upload ke tmpfiles.org
-    const response = await fetch('https://tmpfiles.org/api/v1/upload', {
-      method: 'POST',
-      body: formData
-    });
-
-    const result = await response.json();
-
-    if (result.status === 'success') {
-      // Ubah URL tampilan biasa menjadi direct URL download
-      const fileUrl = result.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-      qrStatus.innerText = 'Membuat QR Code...';
-
-      // 3. Render QR Code ke Element Temporer
-      const qrTemp = document.getElementById('qrcode-temp-container');
-      qrTemp.innerHTML = "";
-      
-      new QRCode(qrTemp, {
-        text: fileUrl,
-        width: 100,
-        height: 100,
-        correctLevel: QRCode.CorrectLevel.H
-      });
-
-      // Tunggu render QR image selesai
-      setTimeout(() => {
-        const qrImgElement = qrTemp.querySelector('img');
-        if (qrImgElement) {
-          currentQrImage = new Image();
-          currentQrImage.src = qrImgElement.src;
-          currentQrImage.onload = () => {
-            renderPhotoStrip(); // Re-render canvas dengan QR Code
-            qrStatus.innerText = '✓ QR Code berhasil dipasang!';
-            qrBtn.disabled = false;
-          };
-        }
-      }, 300);
-
-    } else {
-      throw new Error("Gagal mengunggah gambar.");
-    }
-
-  } catch (err) {
-    console.error(err);
-    qrStatus.innerText = '❌ Gagal membuat QR Code. Coba lagi.';
-    qrBtn.disabled = false;
+  if (downloadBtn) {
+    downloadBtn.href = stripCanvas.toDataURL('image/png');
+    downloadBtn.download = `photostrip-${Date.now()}.png`;
   }
 }
-
-// Sticker Management & Drag-Drop Interaction
-function addSticker(emoji) {
-  const newSticker = {
-    emoji: emoji,
-    x: stripCanvas.width / 2,
-    y: stripCanvas.height / 2,
-    size: 40
-  };
-  appliedStickers.push(newSticker);
-  selectedStickerIndex = appliedStickers.length - 1;
-  renderPhotoStrip();
-}
-
-function getCanvasCoordinates(e) {
-  const rect = stripCanvas.getBoundingClientRect();
-  const scaleX = stripCanvas.width / rect.width;
-  const scaleY = stripCanvas.height / rect.height;
-
-  return {
-    x: (e.clientX - rect.left) * scaleX,
-    y: (e.clientY - rect.top) * scaleY
-  };
-}
-
-stripCanvas.addEventListener('mousedown', (e) => {
-  const coords = getCanvasCoordinates(e);
-  selectedStickerIndex = null;
-
-  for (let i = appliedStickers.length - 1; i >= 0; i--) {
-    const s = appliedStickers[i];
-    const half = s.size / 2;
-    if (coords.x >= s.x - half && coords.x <= s.x + half &&
-        coords.y >= s.y - half && coords.y <= s.y + half) {
-      selectedStickerIndex = i;
-      isDragging = true;
-      dragOffsetX = coords.x - s.x;
-      dragOffsetY = coords.y - s.y;
-      break;
-    }
-  }
-  renderPhotoStrip();
-});
-
-stripCanvas.addEventListener('mousemove', (e) => {
-  if (isDragging && selectedStickerIndex !== null) {
-    const coords = getCanvasCoordinates(e);
-    appliedStickers[selectedStickerIndex].x = coords.x - dragOffsetX;
-    appliedStickers[selectedStickerIndex].y = coords.y - dragOffsetY;
-    renderPhotoStrip();
-  }
-});
-
-window.addEventListener('mouseup', () => {
-  isDragging = false;
-});
-
-window.addEventListener('keydown', (e) => {
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedStickerIndex !== null) {
-    if (document.activeElement.tagName !== 'INPUT') {
-      appliedStickers.splice(selectedStickerIndex, 1);
-      selectedStickerIndex = null;
-      renderPhotoStrip();
-    }
-  }
-});
