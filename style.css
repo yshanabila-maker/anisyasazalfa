@@ -113,6 +113,7 @@ h2 { font-size: 1.3rem; color: #f8fafc; font-weight: 600; }
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -189,6 +190,55 @@ h2 { font-size: 1.3rem; color: #f8fafc; font-weight: 600; }
   font-weight: 600;
   color: #94a3b8;
   margin-bottom: 10px;
+}
+
+.custom-select, .custom-input {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.custom-select:focus, .custom-input:focus {
+  border-color: #38bdf8;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.custom-select.half {
+  flex: 1;
+}
+
+.color-picker-input {
+  width: 42px;
+  height: 38px;
+  background: none;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.checkbox-row input {
+  accent-color: #0284c7;
+  cursor: pointer;
 }
 
 .color-grid { 
