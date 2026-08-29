@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desktop Studio Photobooth</title>
+  
+  <!-- Font Awesome CDN untuk Ikon Modern -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="desktop-container">
+    
+    <!-- STEP 1: HALAMAN UTAMA -->
+    <div id="step-select" class="step-view center-layout">
+      <div class="hero-card">
+        <div class="brand-icon"><i class="fa-solid fa-camera-retro"></i></div>
+        <h1>Studio Photobooth</h1>
+        <p class="subtitle">Pilih format jumlah foto untuk memulai sesi</p>
+        
+        <div class="options-grid">
+          <button class="opt-btn active" id="mode-3" onclick="setPhotoCount(3)">
+            <i class="fa-solid fa-images"></i> 3 Foto Strip
+          </button>
+          <button class="opt-btn" id="mode-4" onclick="setPhotoCount(4)">
+            <i class="fa-solid fa-film"></i> 4 Foto Strip
+          </button>
+        </div>
+
+        <button id="start-btn" onclick="goToCamera()">
+          Mulai Kamera <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: KAMERA -->
+    <div id="step-camera" class="step-view center-layout hidden">
+      <div class="camera-card">
+        <div class="card-header">
+          <button class="back-btn" onclick="resetToStep1()">
+            <i class="fa-solid fa-chevron-left"></i> Batal
+          </button>
+          <h2><i class="fa-solid fa-video"></i> Sesi Foto</h2>
+        </div>
+        
+        <div class="camera-frame">
+          <video id="webcam" autoplay playsinline></video>
+          <div id="countdown-overlay" class="hidden">3</div>
+        </div>
+
+        <div class="controls">
+          <button id="snap-btn">
+            <i class="fa-solid fa-aperture"></i> Ambil Foto!
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: EDITOR -->
+    <div id="step-decorate" class="step-view hidden">
+      <div class="editor-layout">
+        
+        <!-- Sidebar Kontrol -->
+        <div class="sidebar-panel">
+          <h2><i class="fa-solid fa-sliders"></i> Pengaturan Strip</h2>
+          
+          <div class="control-box">
+          
+  <label><i class="fa-solid fa-palette"></i> Warna Background</label>
+  <div class="color-grid">
+    <!-- Tambahkan warna pink di sini -->
+    <button class="color-circle" style="background:#ffbfda" onclick="setBgColor('#ffc6ff')"></button>
+    
+    <!-- Warna Terang & Warm Lainnya -->
+    <button class="color-circle active" style="background:#fdffe3" onclick="setBgColor('#f4f1de')"></button>
+    <button class="color-circle" style="background:#fdfdfc" onclick="setBgColor('#e0e1dd')"></button>
+    <button class="color-circle" style="background:#c7c7c7" onclick="setBgColor('#dad7cd')"></button>
+    <button class="color-circle" style="background:#ffffff" onclick="setBgColor('#faedcd')"></button>
+    
+    <!-- Warna Gelap -->
+    <button class="color-circle" style="background:#18181b" onclick="setBgColor('#18181b')"></button>
+    <button class="color-circle" style="background:#0f172a" onclick="setBgColor('#0f172a')"></button>
+    <button class="color-circle" style="background:#283618" onclick="setBgColor('#283618')"></button>
+    <button class="color-circle" style="background:#582f0e" onclick="setBgColor('#582f0e')"></button>
+    <button class="color-circle" style="background:#1d4925" onclick="setBgColor('#3a5a40')"></button>
+  </div>
+</div>
+          <div class="control-box">
+            <label><i class="fa-solid fa-border-top-left"></i> Motif Background</label>
+            <div class="options-grid">
+              <button class="mini-btn active" id="bg-solid" onclick="setBgPattern('solid')">Polos</button>
+              <button class="mini-btn" id="bg-polkadot" onclick="setBgPattern('polkadot')">Polkadot</button>
+            </div>
+          </div>
+
+          <div class="control-box">
+            <label><i class="fa-solid fa-maximize"></i> Ukuran Border</label>
+            <input type="range" id="padding-slider" min="15" max="45" value="20" oninput="renderPhotoStrip()">
+          </div>
+
+          
+          <div class="action-buttons">
+            
+            <button onclick="resetToStep1()" class="btn-secondary">
+              <i class="fa-solid fa-house"></i> Foto Ulang
+            </button>
+            <a id="download-btn" class="btn-primary">
+              <i class="fa-solid fa-download"></i> Simpan Hasil
+            </a>
+          </div>
+        </div>
+
+        <!-- Canvas Preview -->
+        <div class="canvas-panel">
+          <div class="canvas-wrapper">
+            <canvas id="strip-canvas"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
